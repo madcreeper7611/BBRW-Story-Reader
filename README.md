@@ -12,6 +12,7 @@ This source code is licensed under the Mozilla Public License 2.0. By using this
 1. Open the vbproj file.
 2. Click compile!
 3. Run and test the program!
+
 **With already existing solution**
 1. Open your existing solution.
 2. Import the vbproj file.
