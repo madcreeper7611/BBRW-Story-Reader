@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.IO
 Imports System.Drawing
 Imports System.Media
@@ -16,9 +16,11 @@ Partial Public Class Form1
     Private hoversound As SoundPlayer = New SoundPlayer()
     Public WithEvents newAgent As AxAgent = New AxAgent()
     Public Shared Bonzi As IAgentCtlCharacterEx
-    Public Shared xmlDoc As XmlDocument = New XmlDocument()
+    Public Shared xmlDoc = New XmlDocument()
     Public Shared pageNode As XmlNode
-    Public Shared StoryPath = Environment.GetCommandLineArgs(1)
+    Public Shared CmdArgs As String = Command()
+    Public Shared StoryPath As String
+    Public Shared FileSelected As Boolean = Not String.IsNullOrEmpty(CmdArgs) AndAlso File.Exists(CmdArgs.Substring(CmdArgs.Length - (CmdArgs.Length - 1), CmdArgs.Length - 2))
 
     Public Sub New()
         InitializeComponent()
@@ -39,10 +41,11 @@ Partial Public Class Form1
         PageIndex = 0
 
         ' Checks if a storybook is selected.
-        If File.Exists(StoryPath) Then
+        If FileSelected Then
+            StoryPath = CmdArgs.Substring(CmdArgs.Length - (CmdArgs.Length - 1), CmdArgs.Length - 2)
             xmlDoc.Load(StoryPath)
         Else
-            MessageBox.Show("File not found: " + StoryPath)
+            MessageBox.Show("error0")
         End If
 
         StopLeafButton.Hide()
@@ -61,16 +64,16 @@ Partial Public Class Form1
             Bonzi.Play("ReadLookUpContinued")
             PageIndex = PageIndex + 1
             MovementButtons_Click()
-            Call ReadBook()
+            ReadBook()
         End If
 
         ' If the storybook was opened for the first time
         If OpenedStoryBook = False Then
             If My.Settings.UseGlobalSettings = True AndAlso My.Settings.ActionGlobal = 0 AndAlso PageIndex < 16 OrElse My.Settings.UseGlobalSettings = False AndAlso My.Settings.ActionOpen = 0 AndAlso PageIndex < 16 Then
                 Bonzi.Play("ReadLookUp")
-                Call ReadBook()
+                ReadBook()
             ElseIf My.Settings.UseGlobalSettings = True AndAlso My.Settings.ActionGlobal = 1 AndAlso PageIndex < 16 OrElse My.Settings.UseGlobalSettings = False AndAlso My.Settings.ActionOpen = 1 AndAlso PageIndex < 16 Then
-                Call ReadPage()
+                ReadPage()
             End If
 
             OpenedStoryBook = True
@@ -79,7 +82,7 @@ Partial Public Class Form1
 
     Public Shared Sub ReadBook()
         ' Reads the entire book
-        If File.Exists(StoryPath) Then
+        If FileSelected Then
             CurrentAction = 0
             Dim PageID As String = "page" & PageIndex.ToString()
             Dim pageNode = xmlDoc.SelectSingleNode("/book/bookPages/" & PageID)
@@ -91,7 +94,7 @@ Partial Public Class Form1
         ' Reads Single Page
         Bonzi.Play("ReadLookUp")
 
-        If File.Exists(StoryPath) Then
+        If FileSelected Then
             CurrentAction = 1
             Dim PageID As String = "page" & PageIndex.ToString()
             Dim pageNode = xmlDoc.SelectSingleNode("/book/bookPages/" & PageID)
@@ -103,7 +106,7 @@ Partial Public Class Form1
         ' Reads Single Page, but doesn't say it out loud.
         Bonzi.Play("ReadLookUp")
 
-        If File.Exists(StoryPath) Then
+        If FileSelected Then
             CurrentAction = 1
             Dim PageID As String = "page" & PageIndex.ToString()
             Dim pageNode = xmlDoc.SelectSingleNode("/book/bookPages/" & PageID)
@@ -172,7 +175,7 @@ Partial Public Class Form1
 
     Public Sub MovementButtons_Click()
         ' Loads next or previous image of the StoryBook.
-        If File.Exists(StoryPath) Then
+        If FileSelected Then
             xmlDoc.Load(StoryPath)
             Dim formatNode = xmlDoc.SelectSingleNode("/book/fileFormat")
             StoryBookPNG.Image = Image.FromFile(StoryPath.Substring(0, StoryPath.Length - 4) & "page" & PageIndex & formatNode.InnerText)
